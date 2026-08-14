@@ -1,0 +1,4 @@
+interface:
+  display_name: "使用 Vue CDK"
+  short_description: "在 Vue 3 项目中安装并集成已发布的 Vue CDK"
+  default_prompt: "使用 $use-vue-cdk 为当前 Vue 3 项目选择并集成合适的 CDK 模块。"
