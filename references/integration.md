@@ -49,7 +49,7 @@ import type {ConnectedPosition} from 'vue-cdk/overlay';
 import 'vue-cdk/overlay/style.css';
 ```
 
-不要为不提供 CSS 导出的模块构造不存在的 `style.css` 路径。无论是否显式导入结构 CSS，都需要在应用侧编写颜色、间距、字体、阴影、动画等主题样式。
+目前 `a11y`、`dialog`、`drag-drop`、`overlay`、`scrolling`、`text-field` 六个模块提供 `style.css` 导出；`text-field` 另有 Sass 入口 `vue-cdk/text-field/index` 与预构建样式 `vue-cdk/text-field/text-field-prebuilt.scss`。不要为不提供 CSS 导出的模块构造不存在的 `style.css` 路径。无论是否显式导入结构 CSS，都需要在应用侧编写颜色、间距、字体、阴影、动画等主题样式。
 
 ## SSR 与生命周期
 

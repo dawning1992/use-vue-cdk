@@ -61,19 +61,20 @@ import ConfirmDialog from './ConfirmDialog.vue';
 
 const dialog = useDialog();
 
-function openConfirm(): void {
+async function openConfirm(): Promise<void> {
   const ref = dialog.open<boolean, {title: string}>(ConfirmDialog, {
     data: {title: '确认删除？'},
     panelClass: 'confirm-dialog-panel',
   });
 
-  ref.closed.subscribe(confirmed => {
-    if (confirmed) {
-      // 只在用户明确确认后执行不可逆操作。
-    }
-  });
+  const confirmed = await ref.closedPromise;
+  if (confirmed) {
+    // 只在用户明确确认后执行不可逆操作。
+  }
 }
 ```
+
+`open()` 仍同步返回 `DialogRef`，可以先读取 `id` 或调用实例方法，再通过 `closedPromise` 等待一次性关闭结果。需要事件流组合或多个订阅者时使用 `closed.subscribe()`；两者携带相同结果。`closePredicate` 拒绝关闭时 Promise 不会提前解析，只有首次成功关闭才会结算。
 
 ## 列表拖拽排序
 
@@ -121,7 +122,141 @@ const items = ref(Array.from({length: 10_000}, (_, index) => ({
 </template>
 ```
 
-若实际行高不是固定的 `40px`，不要继续使用这个示例；先检查当前版本是否提供动态尺寸策略。
+条目高度固定时才能使用 `itemSize`；高度不固定时改用下面的 `autosize` 示例，不要套用固定尺寸方案。
+
+## 不定高度虚拟列表
+
+```vue
+<script setup lang="ts">
+import {ref} from 'vue';
+import {VVirtualFor, VVirtualScrollViewport} from 'vue-cdk/scrolling';
+
+const items = ref(Array.from({length: 5_000}, (_, index) => ({
+  id: index,
+  content: `条目 ${index + 1}`,
+})));
+</script>
+
+<template>
+  <VVirtualScrollViewport autosize :estimated-item-size="56" style="height: 320px">
+    <VVirtualFor :of="items" :track-by="(_index, item) => item.id" v-slot="{item}">
+      <article>{{ item.content }}</article>
+    </VVirtualFor>
+  </VVirtualScrollViewport>
+</template>
+```
+
+`autosize` 当前仅支持纵向滚动。顶部或底部追加数据时，`trackBy` 必须为每个条目返回稳定且唯一的键，策略会按 key 缓存实测尺寸并恢复滚动锚点。
+
+## 手风琴
+
+```vue
+<script setup lang="ts">
+import {CdkAccordion, CdkAccordionItem} from 'vue-cdk/accordion';
+</script>
+
+<template>
+  <CdkAccordion>
+    <CdkAccordionItem v-slot="item">
+      <h3>
+        <button type="button" :aria-expanded="item.expanded" @click="item.toggle">
+          面板标题
+        </button>
+      </h3>
+      <div v-show="item.expanded" role="region">面板内容</div>
+    </CdkAccordionItem>
+    <!-- 更多 CdkAccordionItem；需要同时展开多项时给 CdkAccordion 加 multi -->
+  </CdkAccordion>
+</template>
+```
+
+标题、内容区、动画与视觉样式由应用实现；组件只负责单选/多选的展开状态协调。
+
+## 多步骤流程
+
+```vue
+<script setup lang="ts">
+import {computed, ref} from 'vue';
+import {
+  CdkStep,
+  CdkStepHeader,
+  CdkStepper,
+  CdkStepperNext,
+  CdkStepperPrevious,
+  type CdkStepPublicApi,
+} from 'vue-cdk/stepper';
+
+const stepper = ref<{steps: readonly CdkStepPublicApi[]} | null>(null);
+const steps = computed(() => stepper.value?.steps ?? []);
+</script>
+
+<template>
+  <CdkStepper ref="stepper" linear>
+    <nav role="tablist">
+      <CdkStepHeader v-for="step in steps" :key="step.id" :step="step">
+        {{ step.label.value }}
+      </CdkStepHeader>
+    </nav>
+    <CdkStep v-slot="step" label="填写资料">
+      <section v-show="step.isSelected">
+        第一步内容
+        <CdkStepperNext type="button">下一步</CdkStepperNext>
+      </section>
+    </CdkStep>
+    <CdkStep v-slot="step" label="确认提交">
+      <section v-show="step.isSelected">
+        第二步内容
+        <CdkStepperPrevious type="button">上一步</CdkStepperPrevious>
+        <CdkStepperNext type="button">完成</CdkStepperNext>
+      </section>
+    </CdkStep>
+  </CdkStepper>
+</template>
+```
+
+线性校验通过 `CdkStep` 的 `step-control` 传入任意表单库的 `StepControl` 适配对象（需要 `valid` 与 `reset()`）；步骤头、内容区和切换动画由应用实现。
+
+## 文本域自动伸缩与自动填充监控
+
+```vue
+<script setup lang="ts">
+import {ref} from 'vue';
+import {useAutofill, useTextareaAutosize} from 'vue-cdk/text-field';
+
+const textarea = ref<HTMLTextAreaElement | null>(null);
+const input = ref<HTMLInputElement | null>(null);
+const {isAutofilled} = useAutofill(input);
+
+useTextareaAutosize(textarea, {minRows: 2, maxRows: 8});
+</script>
+
+<template>
+  <textarea ref="textarea" />
+  <input ref="input" autocomplete="email" />
+  <span v-if="isAutofilled">浏览器已自动填充</span>
+</template>
+```
+
+自动填充探针依赖 `:-webkit-autofill`，主要支持 Chromium/WebKit，Firefox 不会产生事件；需要指令形态时可改用 `v-textarea-autosize` / `v-autofill`。
+
+## 局部 RTL 方向
+
+```vue
+<script setup lang="ts">
+import {VDir, useDirectionality} from 'vue-cdk/bidi';
+
+const directionality = useDirectionality();
+</script>
+
+<template>
+  <p>应用方向：{{ directionality.valueSignal.value }}</p>
+  <VDir dir="rtl" v-slot="{direction}">
+    局部方向：{{ direction }}
+  </VDir>
+</template>
+```
+
+Vue 指令无法为后代提供方向上下文，局部 RTL 必须使用 `VDir` 或 `provideDirectionality()`，不能依赖自定义指令实现。
 
 ## 嵌套树
 

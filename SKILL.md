@@ -1,6 +1,6 @@
 ---
 name: use-vue-cdk
-description: 在外部 Vue 3 项目中安装、选型和集成 npm 包 vue-cdk。用户要求使用 Vue CDK 实现浮层、对话框、拖拽、无障碍、剪贴板、Portal、滚动与虚拟滚动、树或虚拟树，排查 vue-cdk 导入、样式、SSR、类型或版本兼容问题，或者把 Angular CDK 用法迁移到 Vue 时使用此 Skill。不要用它开发 vue-cdk 源码仓库本身。
+description: 在外部 Vue 3 项目中安装、选型和集成 npm 包 vue-cdk。用户要求使用 Vue CDK 实现浮层、对话框、拖拽、无障碍、剪贴板、Portal、滚动与虚拟滚动、树或虚拟树、手风琴或展开面板、多步骤流程或步进器、RTL 文字方向、响应式断点、文本域自动伸缩、自动填充监控或内容变化观察，排查 vue-cdk 导入、样式、SSR、类型或版本兼容问题，或者把 Angular CDK 用法迁移到 Vue 时使用此 Skill。不要用它开发 vue-cdk 源码仓库本身。
 ---
 
 # 使用 Vue CDK
@@ -22,7 +22,7 @@ description: 在外部 Vue 3 项目中安装、选型和集成 npm 包 vue-cdk�
 - 当前发布包要求 Vue `^3.3.0`；仍须以待安装版本的 `peerDependencies` 为准。
 - 一律从 `vue-cdk/<module>` 子路径导入业务能力。根入口 `vue-cdk` 只用于读取版本号。
 - 只导入当前功能需要的模块，保留 TypeScript 类型导入。
-- `a11y`、`dialog`、`drag-drop`、`overlay`、`scrolling` 提供结构样式。默认运行时会自动注入，也可显式导入 `vue-cdk/<module>/style.css`；应用仍需提供主题样式。
+- `a11y`、`dialog`、`drag-drop`、`overlay`、`scrolling`、`text-field` 提供结构样式。默认运行时会自动注入，也可显式导入 `vue-cdk/<module>/style.css`；`text-field` 另有 Sass 入口 `vue-cdk/text-field/index` 与预构建样式 `vue-cdk/text-field/text-field-prebuilt.scss`。应用仍需提供主题样式。
 
 ## 实现约束
 
@@ -30,8 +30,10 @@ description: 在外部 Vue 3 项目中安装、选型和集成 npm 包 vue-cdk�
 - 使用 Portal、Overlay 或 Dialog 的命令式 API 前，确认内容是否依赖组件级 `provide`。依赖组件局部上下文时优先使用声明式入口，或显式传递所需依赖。
 - 模态和浮层必须覆盖 Escape 关闭、外部点击策略、初始焦点、焦点陷阱、关闭后焦点恢复和卸载清理；具体关闭策略按产品需求确定。
 - 拖拽模块只负责交互与事件；在事件处理器中明确更新业务数据，并验证键盘或替代操作路径。
-- 虚拟滚动必须提供稳定 key 和正确尺寸；动态高度场景先核对当前版本是否支持，不要套用固定尺寸方案。
+- 固定行高虚拟滚动必须保证条目实际高度与 `itemSize` 一致；纵向不定高度使用 `autosize` + `estimatedItemSize`，不要同时传入 `itemSize`，且 `autosize` 当前仅支持纵向。顶部或底部追加数据时必须提供稳定且唯一的 `trackBy`。
 - 树组件必须提供稳定节点标识、展开状态和键盘交互；大数据或分层懒加载再选择 `virtual-tree`。
+- 手风琴与步进器是无样式协调器：展开/步骤状态、选择与键盘导航由库管理，标题区、内容区、步骤头部和切换动画由应用实现；线性步进校验通过 `StepControl` 契约接入任意表单方案。
+- RTL 场景使用 `vue-cdk/bidi` 的 `VDir` 或 `provideDirectionality()` 建立局部方向上下文。Vue 指令无法为后代建立 provide，不要用自定义指令替代方向注入。
 - SSR 中可以导入模块，但真实 DOM 操作只能发生在客户端生命周期。服务端执行前使用框架客户端边界或 `isBrowser()` 等能力保护。
 - 所有事件监听、Overlay、Portal、Dialog、滚动订阅和命令式实例都要在组件卸载或业务结束时释放。
 
