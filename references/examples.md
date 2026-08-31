@@ -76,6 +76,8 @@ async function openConfirm(): Promise<void> {
 
 `open()` 仍同步返回 `DialogRef`，可以先读取 `id` 或调用实例方法，再通过 `closedPromise` 等待一次性关闭结果。需要事件流组合或多个订阅者时使用 `closed.subscribe()`；两者携带相同结果。`closePredicate` 拒绝关闭时 Promise 不会提前解析，只有首次成功关闭才会结算。
 
+多层对话框由同一 `useDialog()` / `dialogService` 打开时共享一个遮罩，通常无需为每层创建或维护遮罩。遮罩点击只关闭最上层参与遮罩的对话框；关闭顶层后，库会自动重排剩余对话框与遮罩层级。某层设置 `hasBackdrop: false` 只会让该层不参与共享遮罩，不会关闭或移除下层仍需使用的遮罩。自定义主题时优先设置 `panelClass` / `backdropClass`，不要依赖遮罩元素数量或手工改写 `overlayRef.hostElement.style.zIndex`。
+
 ## 列表拖拽排序
 
 ```vue

@@ -50,6 +50,8 @@
 - `DialogConfig`：数据、关闭策略、遮罩、尺寸、焦点、滚动、方向、容器和内容 props。
 - 内容组件：`useDialogData()`、`useDialogRef()`；底层注入键为 `DIALOG_DATA`、`DIALOG_REF`。
 - 默认容器：`VDialogContainer`；只有自定义容器确有必要时才替换。
+- 多层行为：同一 `Dialog` 服务中的对话框按打开顺序形成层级栈，并共享唯一遮罩。遮罩位于最上层 `hasBackdrop !== false` 的对话框之下、其余层之上；关闭任意层后会重新计算层级。遮罩点击只派发给最上层参与者。
+- 遮罩配置：共享遮罩的 `backdropClass` 跟随最上层参与者；任一参与者设置 `disableAnimations: true` 时，共享遮罩使用无动画模式。`hasBackdrop: false` 的对话框不参与遮罩选择，但仍保留在打开栈中。
 
 ## drag-drop
 

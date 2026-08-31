@@ -10,7 +10,7 @@
 | 复制文本 | `vue-cdk/clipboard` | `useClipboard`、`vCopyToClipboard` | 指令需要注册；SSR 无 DOM 时会降级或报出明确错误 |
 | 值与类型规范化 | `vue-cdk/coercion` | `coerceArray` 等工具 | 适合组件输入边界 |
 | 数据源与选择状态 | `vue-cdk/collections` | `DataSource`、`SelectionModel` | 可与树、虚拟滚动组合 |
-| 模态对话框 | `vue-cdk/dialog` | `useDialog` | 动态内容、遮罩、焦点和关闭结果；提供结构 CSS |
+| 模态对话框 | `vue-cdk/dialog` | `useDialog` | 动态内容、焦点和关闭结果；同一服务的多层对话框共享遮罩并自动管理层级；提供结构 CSS |
 | 排序、跨容器移动、自由拖动 | `vue-cdk/drag-drop` | `VDropList`、`VDrag` | 业务数据由使用方更新；提供结构 CSS |
 | 类型化事件流 | `vue-cdk/emitter` | `Emitter` | 用于轻量事件协作 |
 | 响应式断点与媒体查询 | `vue-cdk/layout` | `Breakpoints`、`BreakpointObserver`、`useBreakpoints`、`MediaMatcher` | 组合式入口随作用域自动退订；SSR 回退为不匹配 |
